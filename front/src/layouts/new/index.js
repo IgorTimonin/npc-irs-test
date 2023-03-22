@@ -48,6 +48,9 @@ function New() {
                   New Page
                 </MDTypography>
               </MDBox>
+              <MDBox pt={3}>
+                <div>Скоро здесь будет новая страница</div>
+              </MDBox>
             </Card>
           </Grid>
         </Grid>
