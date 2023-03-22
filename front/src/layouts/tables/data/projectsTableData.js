@@ -22,7 +22,6 @@ import Icon from "@mui/material/Icon";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDAvatar from "components/MDAvatar";
-import MDProgress from "components/MDProgress";
 
 // Images
 import LogoAsana from "assets/images/small-logos/logo-asana.svg";
@@ -39,17 +38,6 @@ export default function data() {
       <MDTypography display="block" variant="button" fontWeight="medium" ml={1} lineHeight={1}>
         {name}
       </MDTypography>
-    </MDBox>
-  );
-
-  const Progress = ({ color, value }) => (
-    <MDBox display="flex" alignItems="center">
-      <MDTypography variant="caption" color="text" fontWeight="medium">
-        {value}%
-      </MDTypography>
-      <MDBox ml={0.5} width="9rem">
-        <MDProgress variant="gradient" color={color} value={value} />
-      </MDBox>
     </MDBox>
   );
 
@@ -75,7 +63,6 @@ export default function data() {
             working
           </MDTypography>
         ),
-        completion: <Progress color="info" value={60} />,
         action: (
           <MDTypography component="a" href="#" color="text">
             <Icon>more_vert</Icon>
@@ -94,7 +81,6 @@ export default function data() {
             done
           </MDTypography>
         ),
-        completion: <Progress color="success" value={100} />,
         action: (
           <MDTypography component="a" href="#" color="text">
             <Icon>more_vert</Icon>
@@ -113,7 +99,6 @@ export default function data() {
             canceled
           </MDTypography>
         ),
-        completion: <Progress color="error" value={30} />,
         action: (
           <MDTypography component="a" href="#" color="text">
             <Icon>more_vert</Icon>
@@ -132,7 +117,6 @@ export default function data() {
             working
           </MDTypography>
         ),
-        completion: <Progress color="info" value={80} />,
         action: (
           <MDTypography component="a" href="#" color="text">
             <Icon>more_vert</Icon>
@@ -151,7 +135,6 @@ export default function data() {
             canceled
           </MDTypography>
         ),
-        completion: <Progress color="error" value={0} />,
         action: (
           <MDTypography component="a" href="#" color="text">
             <Icon>more_vert</Icon>
@@ -170,7 +153,6 @@ export default function data() {
             done
           </MDTypography>
         ),
-        completion: <Progress color="success" value={100} />,
         action: (
           <MDTypography component="a" href="#" color="text">
             <Icon>more_vert</Icon>
