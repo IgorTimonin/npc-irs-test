@@ -1,38 +1,25 @@
 require('dotenv').config();
 const express = require('express');
-const { Sequelize } = require('sequelize');
 const { errors } = require('celebrate');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const app = express();
 const NotFoundError = require('./errors/NotFoundError');
-const { postgresPath, localPort } = require('./configs');
+const { localPort } = require('./configs');
 const { errorHandler } = require('./middlewares/errorHandler');
 const { pageNotFoundErr } = require('./errors/errorsConsts');
+const { testConnection } = require('./db');
 
-const { NODE_ENV, DB_PATH, PORT } = process.env;
-const sequelize = new Sequelize(
-  NODE_ENV === 'production' ? DB_PATH : postgresPath,
-);
+const { NODE_ENV, PORT } = process.env;
+const port = NODE_ENV === 'production' ? PORT : localPort;
+
 app.use(requestLogger); // логгер запросов
 app.use(express.json());
-
-//  проверка соединения с БД
-async function testConnection() {
-  try {
-    await sequelize.authenticate();
-    console.log('Соединение с БД успешно установлено');
-  } catch (error) {
-    console.error('Ошибка подключения к БД:', error);
-  }
-}
-
 testConnection();
-
 app.use('/*', (req, res, next) => {
   next(new NotFoundError(pageNotFoundErr));
 });
 app.use(errorLogger); // логгер ошибок
 app.use(errors()); // обработчик ошибок celebrate
 app.use(errorHandler); // централизованный обработчик ошибок
-app.listen(PORT || localPort);
+app.listen(port);
