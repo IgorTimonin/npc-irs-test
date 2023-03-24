@@ -3,23 +3,23 @@ const { DataTypes } = require('sequelize');
 module.exports = function (sequelize) {
   return sequelize.define('orders', {
     order_id: {
-      types: DataTypes.INTEGER,
+      type: DataTypes.INTEGER,
       primaryKey: true,
       allowNull: false,
     },
     items: {
-      types: DataTypes.STRING,
+      type: DataTypes.STRING,
       allowNull: false,
     },
     purchase_date: {
-      types: DataTypes.DATE,
+      type: DataTypes.DATE,
       allowNull: false,
     },
     total_cost: {
-      types: DataTypes.NUMBER,
+      type: DataTypes.NUMBER,
     },
     customer_id: {
-      types: DataTypes.INTEGER,
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
   });

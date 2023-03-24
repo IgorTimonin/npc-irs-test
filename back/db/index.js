@@ -24,4 +24,10 @@ async function testConnection() {
   }
 }
 
-module.exports = { testConnection };
+const Customers = require('./models/Customers')(sequelize);
+
+module.exports = {
+  sequelize: Sequelize,
+  customers: Customers,
+  testConnection,
+};
