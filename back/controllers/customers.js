@@ -16,12 +16,8 @@ module.exports.createCustomer = (req, res, next) => {
   Customers.create({ ...req.body })
     .then((data) => res.status(201).send(data))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(
-          new BadRequestError(
-            'Переданы некорректные данные для добавления нового клиента',
-          ),
-        );
+      if (err.name === 'SequelizeUniqueConstraintError') {
+        next(new BadRequestError('Клиент c таким email уже существует'));
       } else {
         next(err);
       }
@@ -42,16 +38,17 @@ module.exports.deleteCustomer = (req, res, next) => {
     .catch(next);
 };
 
-// module.exports.updateCustomer = (req, res, next) => {
-//   Customers.findById(req.params.Id)
-//     .then((customer) => {
-//       if (!customer) {
-//         throw new NotFoundError(`Клиент с id ${req.params.Id} не найден`);
-//       }
-//       return customer.remove();
-//     })
-//     .then((customer) => {
-//       res.send(customer);
-//     })
-//     .catch(next);
-// };
+module.exports.updateCustomer = (req, res, next) => {
+  const { id } = req.params;
+  Customers.update({ ...req.body }, { where: { id } })
+    .then((customer) => {
+      if (!customer) {
+        throw new NotFoundError(`Клиент с id ${req.params.Id} не найден`);
+      }
+      return customer;
+    })
+    .then((customer) => {
+      res.send(customer);
+    })
+    .catch(next);
+};

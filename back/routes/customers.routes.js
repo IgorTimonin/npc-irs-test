@@ -2,7 +2,7 @@ const customersRouter = require('express').Router();
 const {
   getAllCustomers,
   deleteCustomer,
-  // updateCustomer,
+  updateCustomer,
   createCustomer,
 } = require('../controllers/customers');
 
@@ -19,7 +19,7 @@ const {
 
 customersRouter.get('/', getAllCustomers);
 customersRouter.post('/', createCustomer);
-// customerRouter.patch('/customers', updateCustomer);
+customersRouter.patch('/:id', updateCustomer);
 customersRouter.delete('/:id', deleteCustomer);
 
 // errors();

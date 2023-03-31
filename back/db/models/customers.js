@@ -25,7 +25,9 @@ module.exports = function (sequelize) {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
-      isEmail: true,
+      validate: {
+        isEmail: true,
+      },
     },
     balance: {
       type: DataTypes.NUMBER,

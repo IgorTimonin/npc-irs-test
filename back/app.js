@@ -20,9 +20,6 @@ app.use(express.json());
 testConnection();
 syncDB();
 app.use('/customers', customersRouter);
-// app.use('/add', customersRouter);
-// app.use('/delete', customersRouter);
-
 app.use('/orders', ordersRouter);
 app.use('/*', (req, res, next) => {
   next(new NotFoundError(pageNotFoundErr));
