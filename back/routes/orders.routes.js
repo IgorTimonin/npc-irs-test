@@ -1,4 +1,6 @@
-// const tableRouter = require('express').Router();
+const ordersRouter = require('express').Router();
+const { getAllOrders } = require('../controllers/orders');
+
 // const { celebrate, errors } = require('celebrate');
 // const {
 //   tableIdValidator,
@@ -10,9 +12,7 @@
 //   deletetable,
 // } = require('../controllers/tables');
 
-// tableRouter.get('/', gettables);
-// tableRouter.post('/', celebrate(createtableValidator), createtable);
-// tableRouter.delete('/:Id', celebrate(tableIdValidator), deletetable);
+ordersRouter.get('/', getAllOrders);
 
 // errors();
-// module.exports = { tableRouter };
+module.exports = { ordersRouter };

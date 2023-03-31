@@ -9,10 +9,23 @@ const sequelize = new Sequelize(
   {
     define: {
       freezeTableName: true, // соответствие имён моделей и таблиц
+      timestamps: false, // отменяем создание timestamps
     },
-    timestamps: false, // отменяем создание timestamps
-  },
+  }
 );
+
+async function syncDB() {
+  try {
+    await sequelize.sync();
+    console.log('БД успешно синхронизированна');
+  } catch (error) {
+    console.error('Ошибка синхронизации c БД:', error);
+  }
+}
+
+// импорт моделей
+const Customers = require('./models/Customers')(sequelize);
+const Orders = require('./models/Orders')(sequelize);
 
 //  проверка соединения с БД
 async function testConnection() {
@@ -24,10 +37,10 @@ async function testConnection() {
   }
 }
 
-const Customers = require('./models/Customers')(sequelize);
-
 module.exports = {
   sequelize: Sequelize,
   customers: Customers,
+  orders: Orders,
   testConnection,
+  syncDB,
 };
