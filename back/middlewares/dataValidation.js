@@ -1,24 +1,19 @@
 const { Joi } = require('celebrate');
 
-module.exports.createTableValidator = {
+module.exports.createCustomerValidator = {
   body: Joi.object().keys({
-    country: Joi.string().required(),
-    director: Joi.string().required(),
-    description: Joi.string().required(),
-    nameRU: Joi.string().required(),
-    nameEN: Joi.string().required(),
-    tableId: Joi.number().required(),
-    duration: Joi.number().required(),
-    year: Joi.string().required(),
+    name: Joi.string().required().min(2).max(30),
+    surname: Joi.string().required().min(2).max(30),
+    email: Joi.string().email(),
+    balance: Joi.number(),
   }),
 };
 
-module.exports.tableIdValidator = {
-  params: Joi.object().keys({
-    Id: Joi.string()
-      .required()
-      .min(24)
-      .max(24)
-      .pattern(/^[a-f\d]{24}$/i),
+module.exports.updateCustomerValidator = {
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    surname: Joi.string().min(2).max(30),
+    email: Joi.string().email(),
+    balance: Joi.number(),
   }),
 };

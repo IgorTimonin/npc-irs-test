@@ -17,14 +17,15 @@ const port = NODE_ENV === 'production' ? PORT : localPort;
 
 app.use(requestLogger); // логгер запросов
 app.use(express.json());
-testConnection();
-syncDB();
+testConnection(); //  проверка соединения с БД
+syncDB(); // синхронизация данных с БД
 app.use('/customers', customersRouter);
 app.use('/orders', ordersRouter);
 app.use('/*', (req, res, next) => {
   next(new NotFoundError(pageNotFoundErr));
 });
 app.use(errorLogger); // логгер ошибок
+
 app.use(errors()); // обработчик ошибок celebrate
 app.use(errorHandler); // централизованный обработчик ошибок
 app.listen(port);

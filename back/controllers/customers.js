@@ -1,8 +1,8 @@
 const NotFoundError = require('../errors/NotFoundError');
 const BadRequestError = require('../errors/BadRequestError');
-const ForbiddenError = require('../errors/ForbiddenError');
-
+const ConflictError = require('../errors/ConflictError');
 const db = require('../db');
+const { conflictEmailErr } = require('../errors/errorsConsts');
 
 const Customers = db.customers;
 
@@ -17,7 +17,15 @@ module.exports.createCustomer = (req, res, next) => {
     .then((data) => res.status(201).send(data))
     .catch((err) => {
       if (err.name === 'SequelizeUniqueConstraintError') {
-        next(new BadRequestError('Клиент c таким email уже существует'));
+        next(new ConflictError(conflictEmailErr));
+      } else if (err.message === 'Validation failed') {
+        next(
+          new BadRequestError(
+            `${Object.values(err.errors)
+              .map((error) => error.massage)
+              .join(', ')}`,
+          ),
+        );
       } else {
         next(err);
       }
