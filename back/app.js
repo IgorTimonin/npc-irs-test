@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors')
 const { errors } = require('celebrate');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 
@@ -19,6 +20,16 @@ app.use(requestLogger); // логгер запросов
 app.use(express.json());
 testConnection(); //  проверка соединения с БД
 syncDB(); // синхронизация данных с БД
+
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+  ],
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
+
 app.use('/customers', customersRouter);
 app.use('/orders', ordersRouter);
 app.use('/*', (req, res, next) => {

@@ -26,15 +26,117 @@ import MDTypography from "components/MDTypography";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
-import DataTable from "examples/Tables/DataTable";
 
-// Data
-import authorsTableData from "layouts/tables/data/authorsTableData";
-import projectsTableData from "layouts/tables/data/projectsTableData";
+import { AgGridReact } from "ag-grid-react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import { mainApi } from "utils/Api";
+import { useLocation } from "react-router-dom";
+import Preloader from "Preloader/Preloader";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-alpine.css";
+import MDButton from "components/MDButton";
 
 function Tables() {
-  const { columns, rows } = authorsTableData();
-  const { columns: pColumns, rows: pRows } = projectsTableData();
+  // колонки таблицы "покупатели"
+  const [customersColumns] = useState([
+    { field: "id" },
+    { field: "name" },
+    { field: "surname" },
+    { field: "email" },
+    { field: "balance" },
+    { field: "creation_date" },
+  ]);
+  // колонки таблицы "заказы"
+  const [ordersColumns] = useState([
+    { field: "order_id" },
+    { field: "items" },
+    { field: "purchase_date" },
+    { field: "total_cost" },
+    { field: "customer_id" },
+  ]);
+  const { pathname } = useLocation();
+  const [isLoading, setIsLoading] = useState(false);
+  // const [message, setMessage] = useState("");
+  const [customersList, setCustomersList] = useState([]);
+  const [ordersList, setOrdersList] = useState([]);
+
+  // получение данных из БД
+  async function getCustomersData() {
+    setIsLoading(true);
+    await mainApi
+      .getCustomersData()
+      .then((data) => setCustomersList(data))
+      .catch((err) => {
+        // setMessage(
+        //   "Bo время запроса произошла ошибка. Возможно, проблема c соединением или сервер недоступен. Подождите немного и попробуйте ещё раз"
+        // );
+        console.log(err);
+      });
+  }
+
+  function getOrdersData() {
+    setIsLoading(true);
+    mainApi
+      .getOrdersData()
+      .then((data) => setOrdersList(data))
+      .catch((err) => {
+        // setMessage(
+        //   "Bo время запроса произошла ошибка. Возможно, проблема c соединением или сервер недоступен. Подождите немного и попробуйте ещё раз"
+        // );
+        console.log(err);
+      });
+  }
+
+  // function setColumns(arr, data) {
+  //   // eslint-disable-next-line no-param-reassign
+  //   arr = Object.keys(data[0]).map((key) => {
+  //     const newItem = {};
+  //     newItem.field = key;
+  //     return newItem;
+  //   });
+  //   setIsLoading(false);
+  //   console.log(arr);
+  // }
+
+  useEffect(() => {
+    getCustomersData();
+    getOrdersData();
+  }, []);
+
+  useEffect(() => {
+    if (pathname === "/tables") {
+      if (customersList.length === 0) {
+        setTimeout(() => {}, 2000);
+      } else setIsLoading(false);
+    }
+  }, [customersList]);
+
+  useEffect(() => {
+    if (pathname === "/tables") {
+      if (ordersList.length === 0) {
+        setTimeout(() => {}, 2000);
+      } else console.log(ordersList);
+      setIsLoading(false);
+    }
+  }, [ordersList]);
+
+  // AgGrid options
+  const gridRef = useRef(); // Optional - for accessing Grid's API
+
+  // DefaultColDef sets props common to all Columns
+  const defaultColDef = useMemo(() => ({
+    sortable: true,
+  }));
+
+  // Example of consuming Grid Event
+  const cellClickedListener = useCallback((event) => {
+    console.log("cellClicked", event);
+  }, []);
+
+  // Example using Grid's API
+  const buttonListener = useCallback(() => {
+    gridRef.current.api.deselectAll();
+  }, []);
 
   return (
     <DashboardLayout>
@@ -43,6 +145,7 @@ function Tables() {
         <Grid container spacing={6}>
           <Grid item xs={12}>
             <Card>
+              <Preloader isLoading={isLoading} />
               <MDBox
                 mx={2}
                 mt={-3}
@@ -54,22 +157,36 @@ function Tables() {
                 coloredShadow="info"
               >
                 <MDTypography variant="h6" color="white">
-                  Authors Table
+                  Покупатели
                 </MDTypography>
               </MDBox>
               <MDBox pt={3}>
-                <DataTable
-                  table={{ columns, rows }}
-                  isSorted={false}
-                  entriesPerPage={false}
-                  showTotalEntries={false}
-                  noEndBorder
-                />
+                <MDButton mx={5} variant="gradient" color="dark" onClick={buttonListener}>
+                  Добавить запись
+                </MDButton>
+                <MDButton mx={5} variant="gradient" color="dark">
+                  изменить
+                </MDButton>
+                <MDButton mx={5} variant="gradient" color="warning">
+                  удалить
+                </MDButton>
+                <div className="ag-theme-alpine" style={{ height: 400, width: "90%" }}>
+                  <AgGridReact
+                    ref={gridRef} // Ref for accessing Grid's API
+                    rowData={customersList} // Row Data for Rows
+                    columnDefs={customersColumns} // Column Defs for Columns
+                    defaultColDef={defaultColDef} // Default Column Properties
+                    animateRows // Optional - set to 'true' to have rows animate when sorted
+                    rowSelection="multiple" // Options - allows click selection of rows
+                    onCellClicked={cellClickedListener} // Optional - registering for Grid Event
+                  />
+                </div>
               </MDBox>
             </Card>
           </Grid>
           <Grid item xs={12}>
             <Card>
+              <Preloader isLoading={isLoading} />
               <MDBox
                 mx={2}
                 mt={-3}
@@ -81,17 +198,21 @@ function Tables() {
                 coloredShadow="info"
               >
                 <MDTypography variant="h6" color="white">
-                  Projects Table
+                  Заказы
                 </MDTypography>
               </MDBox>
               <MDBox pt={3}>
-                <DataTable
-                  table={{ columns: pColumns, rows: pRows }}
-                  isSorted={false}
-                  entriesPerPage={false}
-                  showTotalEntries={false}
-                  noEndBorder
-                />
+                <div className="ag-theme-alpine" style={{ height: 400, width: "90%" }}>
+                  <AgGridReact
+                    ref={gridRef} // Ref for accessing Grid's API
+                    rowData={ordersList} // Row Data for Rows
+                    columnDefs={ordersColumns} // Column Defs for Columns
+                    defaultColDef={defaultColDef} // Default Column Properties
+                    animateRows // Optional - set to 'true' to have rows animate when sorted
+                    rowSelection="multiple" // Options - allows click selection of rows
+                    onCellClicked={cellClickedListener} // Optional - registering for Grid Event
+                  />
+                </div>
               </MDBox>
             </Card>
           </Grid>

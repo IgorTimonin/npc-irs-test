@@ -40,6 +40,8 @@ import themeDark from "assets/theme-dark";
 import brandWhite from "assets/images/logo-ct.png";
 import brandDark from "assets/images/logo-ct-dark.png";
 
+// import { mainApi } from "./utils/Api";
+
 // Material Dashboard 2 React contexts
 import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "./context";
 
@@ -50,7 +52,6 @@ export default function App() {
   const [controller, dispatch] = useMaterialUIController();
   const {
     miniSidenav,
-    // direction,
     layout,
     openConfigurator,
     sidenavColor,
@@ -60,6 +61,56 @@ export default function App() {
   } = controller;
   const [onMouseEnter, setOnMouseEnter] = useState(false);
   const { pathname } = useLocation();
+  // // const [isLoading, setIsLoading] = useState(false);
+  // // const [message, setMessage] = useState("");
+  // const [customersList, setCustomersList] = useState([]);
+  // const [ordersList, setOrdersList] = useState([]);
+
+  // // получение данных из БД
+  // function getCustomersData() {
+  //   mainApi
+  //     .getCustomersData()
+  //     .then((data) => setCustomersList(data))
+  //     .catch((err) => {
+  //       // setMessage(
+  //       //   "Bo время запроса произошла ошибка. Возможно, проблема c соединением или сервер недоступен. Подождите немного и попробуйте ещё раз"
+  //       // );
+  //       console.log(err);
+  //     });
+  // }
+
+  // function getOrdersData() {
+  //   mainApi
+  //     .getOrdersData()
+  //     .then((data) => setOrdersList(data))
+  //     .catch((err) => {
+  //       // setMessage(
+  //       //   "Bo время запроса произошла ошибка. Возможно, проблема c соединением или сервер недоступен. Подождите немного и попробуйте ещё раз"
+  //       // );
+  //       console.log(err);
+  //     });
+  // }
+
+  // useEffect(() => {
+  //   getCustomersData();
+  //   getOrdersData();
+  // }, []);
+
+  // useEffect(() => {
+  //   if (pathname === "/tables") {
+  //     if (customersList.length === 0) {
+  //       setTimeout(() => {}, 2000);
+  //     } else console.log(customersList);
+  //   }
+  // }, [customersList]);
+
+  // useEffect(() => {
+  //   if (pathname === "/tables") {
+  //     if (ordersList.length === 0) {
+  //       setTimeout(() => {}, 2000);
+  //     } else console.log(ordersList);
+  //   }
+  // }, [ordersList]);
 
   // Open sidenav when mouse enter on mini sidenav
   const handleOnMouseEnter = () => {
@@ -80,11 +131,6 @@ export default function App() {
   // Change the openConfigurator state
   const handleConfiguratorOpen = () => setOpenConfigurator(dispatch, !openConfigurator);
 
-  // Setting the dir attribute for the body element
-  // useEffect(() => {
-  //   document.body.setAttribute("dir", direction);
-  // }, [direction]);
-
   // Setting page scroll to 0 when changing the route
   useEffect(() => {
     document.documentElement.scrollTop = 0;
@@ -96,11 +142,9 @@ export default function App() {
       if (route.collapse) {
         return getRoutes(route.collapse);
       }
-
       if (route.route) {
         return <Route exact path={route.route} element={route.component} key={route.key} />;
       }
-
       return null;
     });
 
