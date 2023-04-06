@@ -30,7 +30,7 @@ import Footer from "examples/Footer";
 import { AgGridReact } from "ag-grid-react";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { mainApi } from "utils/Api";
-import { useLocation } from "react-router-dom";
+// import { useLocation } from "react-router-dom";
 import Preloader from "Preloader/Preloader";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
@@ -39,7 +39,7 @@ import MDButton from "components/MDButton";
 function Tables() {
   // колонки таблицы "покупатели"
   const [customersColumns] = useState([
-    { field: "id" },
+    { field: "id", maxWidth: 100 },
     { field: "name" },
     { field: "surname" },
     { field: "email" },
@@ -48,77 +48,69 @@ function Tables() {
   ]);
   // колонки таблицы "заказы"
   const [ordersColumns] = useState([
-    { field: "order_id" },
+    { field: "order_id", maxWidth: 100 },
     { field: "items" },
     { field: "purchase_date" },
     { field: "total_cost" },
     { field: "customer_id" },
   ]);
-  const { pathname } = useLocation();
+  // const { pathname } = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   // const [message, setMessage] = useState("");
   const [customersList, setCustomersList] = useState([]);
   const [ordersList, setOrdersList] = useState([]);
+  // let selectedRowID = null;
+  const [selectedRowId, setSelectedRowId] = useState(null);
 
-  // получение данных из БД
+  // получение данных из БД:
+  // о пользователях
   async function getCustomersData() {
     setIsLoading(true);
     await mainApi
       .getCustomersData()
       .then((data) => setCustomersList(data))
+      .then(() => {
+        setIsLoading(false);
+      })
       .catch((err) => {
-        // setMessage(
-        //   "Bo время запроса произошла ошибка. Возможно, проблема c соединением или сервер недоступен. Подождите немного и попробуйте ещё раз"
-        // );
         console.log(err);
       });
   }
-
+  // о заказах
   function getOrdersData() {
     setIsLoading(true);
     mainApi
       .getOrdersData()
       .then((data) => setOrdersList(data))
+      .then(() => {
+        setIsLoading(false);
+      })
       .catch((err) => {
-        // setMessage(
-        //   "Bo время запроса произошла ошибка. Возможно, проблема c соединением или сервер недоступен. Подождите немного и попробуйте ещё раз"
-        // );
         console.log(err);
       });
   }
-
-  // function setColumns(arr, data) {
-  //   // eslint-disable-next-line no-param-reassign
-  //   arr = Object.keys(data[0]).map((key) => {
-  //     const newItem = {};
-  //     newItem.field = key;
-  //     return newItem;
-  //   });
-  //   setIsLoading(false);
-  //   console.log(arr);
-  // }
 
   useEffect(() => {
     getCustomersData();
     getOrdersData();
   }, []);
 
-  useEffect(() => {
-    if (pathname === "/tables") {
-      if (customersList.length === 0) {
-        setTimeout(() => {}, 2000);
-      } else setIsLoading(false);
-    }
-  }, [customersList]);
+  // useEffect(() => {
+  //   if (pathname === "/tables") {
+  //     if (customersList.length === 0) {
+  //       setTimeout(() => {}, 2000);
+  //     } else setIsLoading(false);
+  //   }
+  // }, [customersList]);
 
-  useEffect(() => {
-    if (pathname === "/tables") {
-      if (ordersList.length === 0) {
-        setTimeout(() => {}, 2000);
-      } else console.log(ordersList);
-      setIsLoading(false);
-    }
-  }, [ordersList]);
+  // useEffect(() => {
+  //   if (pathname === "/tables") {
+  //     if (ordersList.length === 0) {
+  //       setTimeout(() => {}, 2000);
+  //     } else console.log(ordersList);
+  //     setIsLoading(false);
+  //   }
+  // }, [ordersList]);
 
   // AgGrid options
   const gridRef = useRef(); // Optional - for accessing Grid's API
@@ -126,12 +118,30 @@ function Tables() {
   // DefaultColDef sets props common to all Columns
   const defaultColDef = useMemo(() => ({
     sortable: true,
+    flex: 1,
+    minWidth: 30,
   }));
 
   // Example of consuming Grid Event
-  const cellClickedListener = useCallback((event) => {
-    console.log("cellClicked", event);
+  // const cellClickedListener = useCallback((event) => {
+  //   selectedRowID = event.data.id;
+  // }, []);
+
+  // сохраняем id строки в переменную
+  const clickedRowIdListener = useCallback((event) => {
+    // selectedRowID = event.data.id;
+    setSelectedRowId(event.data.id);
   }, []);
+
+  // Example of consuming Grid Event
+  const deleteRow = () => {
+    // console.log(selectedRowId);
+    mainApi.deleteCustomer(selectedRowId);
+  };
+
+  useEffect(() => {
+    console.log(selectedRowId);
+  }, [selectedRowId]);
 
   // Example using Grid's API
   const buttonListener = useCallback(() => {
@@ -161,24 +171,30 @@ function Tables() {
                 </MDTypography>
               </MDBox>
               <MDBox pt={3}>
-                <MDButton mx={5} variant="gradient" color="dark" onClick={buttonListener}>
+                <MDButton
+                  sx={{ ml: "0.5rem" }}
+                  size="small"
+                  variant="gradient"
+                  color="success"
+                  onClick={buttonListener}
+                >
                   Добавить запись
                 </MDButton>
-                <MDButton mx={5} variant="gradient" color="dark">
+                <MDButton sx={{ m: "0.5rem" }} size="small" variant="gradient" color="secondary">
                   изменить
                 </MDButton>
-                <MDButton mx={5} variant="gradient" color="warning">
+                <MDButton size="small" variant="gradient" color="error" onClick={deleteRow}>
                   удалить
                 </MDButton>
-                <div className="ag-theme-alpine" style={{ height: 400, width: "90%" }}>
+                <div className="ag-theme-alpine" style={{ height: 400, width: "100%" }}>
                   <AgGridReact
                     ref={gridRef} // Ref for accessing Grid's API
                     rowData={customersList} // Row Data for Rows
                     columnDefs={customersColumns} // Column Defs for Columns
                     defaultColDef={defaultColDef} // Default Column Properties
                     animateRows // Optional - set to 'true' to have rows animate when sorted
-                    rowSelection="multiple" // Options - allows click selection of rows
-                    onCellClicked={cellClickedListener} // Optional - registering for Grid Event
+                    rowSelection="single" // Options - allows click selection of rows
+                    onCellClicked={clickedRowIdListener} // Optional - registering for Grid Event
                   />
                 </div>
               </MDBox>
@@ -202,7 +218,7 @@ function Tables() {
                 </MDTypography>
               </MDBox>
               <MDBox pt={3}>
-                <div className="ag-theme-alpine" style={{ height: 400, width: "90%" }}>
+                <div className="ag-theme-alpine" style={{ height: 400, width: "100%" }}>
                   <AgGridReact
                     ref={gridRef} // Ref for accessing Grid's API
                     rowData={ordersList} // Row Data for Rows
@@ -210,7 +226,7 @@ function Tables() {
                     defaultColDef={defaultColDef} // Default Column Properties
                     animateRows // Optional - set to 'true' to have rows animate when sorted
                     rowSelection="multiple" // Options - allows click selection of rows
-                    onCellClicked={cellClickedListener} // Optional - registering for Grid Event
+                    // onCellClicked={cellClickedListener} // Optional - registering for Grid Event
                   />
                 </div>
               </MDBox>

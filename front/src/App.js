@@ -61,56 +61,6 @@ export default function App() {
   } = controller;
   const [onMouseEnter, setOnMouseEnter] = useState(false);
   const { pathname } = useLocation();
-  // // const [isLoading, setIsLoading] = useState(false);
-  // // const [message, setMessage] = useState("");
-  // const [customersList, setCustomersList] = useState([]);
-  // const [ordersList, setOrdersList] = useState([]);
-
-  // // получение данных из БД
-  // function getCustomersData() {
-  //   mainApi
-  //     .getCustomersData()
-  //     .then((data) => setCustomersList(data))
-  //     .catch((err) => {
-  //       // setMessage(
-  //       //   "Bo время запроса произошла ошибка. Возможно, проблема c соединением или сервер недоступен. Подождите немного и попробуйте ещё раз"
-  //       // );
-  //       console.log(err);
-  //     });
-  // }
-
-  // function getOrdersData() {
-  //   mainApi
-  //     .getOrdersData()
-  //     .then((data) => setOrdersList(data))
-  //     .catch((err) => {
-  //       // setMessage(
-  //       //   "Bo время запроса произошла ошибка. Возможно, проблема c соединением или сервер недоступен. Подождите немного и попробуйте ещё раз"
-  //       // );
-  //       console.log(err);
-  //     });
-  // }
-
-  // useEffect(() => {
-  //   getCustomersData();
-  //   getOrdersData();
-  // }, []);
-
-  // useEffect(() => {
-  //   if (pathname === "/tables") {
-  //     if (customersList.length === 0) {
-  //       setTimeout(() => {}, 2000);
-  //     } else console.log(customersList);
-  //   }
-  // }, [customersList]);
-
-  // useEffect(() => {
-  //   if (pathname === "/tables") {
-  //     if (ordersList.length === 0) {
-  //       setTimeout(() => {}, 2000);
-  //     } else console.log(ordersList);
-  //   }
-  // }, [ordersList]);
 
   // Open sidenav when mouse enter on mini sidenav
   const handleOnMouseEnter = () => {

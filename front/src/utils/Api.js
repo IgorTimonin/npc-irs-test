@@ -35,19 +35,26 @@ class Api {
     }).then(resultHandler);
   }
 
-  updateCustomer(customerData) {
-    return fetch(this.apiPath, {
+  updateCustomer(customerData, id) {
+    return fetch(`${this.apiPath}customers/${id}`, {
       method: "PATCH",
       headers: this.headers,
       body: JSON.stringify(customerData),
     }).then(resultHandler);
   }
 
-  deleteCustomer(Id) {
-    return fetch(`${this.apiPath}${Id}`, {
+  deleteCustomer(id) {
+    return fetch(`${this.apiPath}customers/${id}`, {
       method: "DELETE",
       headers: this.headers,
-    }).then(resultHandler);
+    }).then((res) => {
+      if (res.ok) {
+        return res.text().then((text) => {
+          console.log(text);
+        });
+      }
+      return Promise.reject(new Error(`Ошибка: ${res.status}`));
+    });
   }
 }
 
