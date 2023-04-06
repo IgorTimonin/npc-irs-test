@@ -35,15 +35,16 @@ import Preloader from "Preloader/Preloader";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import MDButton from "components/MDButton";
+// eslint-disable-next-line import/extensions
 
 function Tables() {
   // колонки таблицы "покупатели"
   const [customersColumns] = useState([
     { field: "id", maxWidth: 100 },
-    { field: "name" },
-    { field: "surname" },
-    { field: "email" },
-    { field: "balance" },
+    { field: "name", editable: true },
+    { field: "surname", editable: true },
+    { field: "email", editable: true },
+    { field: "balance", editable: true },
     { field: "creation_date" },
   ]);
   // колонки таблицы "заказы"
@@ -56,14 +57,13 @@ function Tables() {
   ]);
   // const { pathname } = useLocation();
   const [isLoading, setIsLoading] = useState(false);
-  // const [message, setMessage] = useState("");
   const [customersList, setCustomersList] = useState([]);
   const [ordersList, setOrdersList] = useState([]);
-  // let selectedRowID = null;
-  const [selectedRowId, setSelectedRowId] = useState(null);
+  // const [selectedRowId, setSelectedRowId] = useState(null);
+  const [onEdit, setOnEdit] = useState(false);
 
   // получение данных из БД:
-  // о пользователях
+  // о покупателях
   async function getCustomersData() {
     setIsLoading(true);
     await mainApi
@@ -118,6 +118,8 @@ function Tables() {
   // DefaultColDef sets props common to all Columns
   const defaultColDef = useMemo(() => ({
     sortable: true,
+    editable: false,
+    resizable: true,
     flex: 1,
     minWidth: 30,
   }));
@@ -128,25 +130,64 @@ function Tables() {
   // }, []);
 
   // сохраняем id строки в переменную
-  const clickedRowIdListener = useCallback((event) => {
-    // selectedRowID = event.data.id;
-    setSelectedRowId(event.data.id);
+  // const clickedRowIdListener = useCallback((e) => {
+  //   // selectedRowID = event.data.id;
+  //   // setSelectedRowId(e.data.id);
+  // }, []);
+
+  const onRowEditingStarted = useCallback(() => {
+    setOnEdit(true);
+    // console.log("начато редактирование");
   }, []);
 
-  // Example of consuming Grid Event
+  const onRowEditingStopped = useCallback(() => {
+    setOnEdit(false);
+    // console.log("редактирование закончено");
+  }, []);
+
+  // обновление данных таблицы
+  async function rowRerender(callback) {
+    await callback();
+    gridRef.current.api.refreshCells();
+  }
+
+  // удаление покупателя
   const deleteRow = () => {
-    // console.log(selectedRowId);
-    mainApi.deleteCustomer(selectedRowId);
+    const selectedRow = gridRef.current.api.getSelectedNodes();
+    mainApi.deleteCustomer(selectedRow[0].data.id).then(() => {
+      rowRerender(getCustomersData).catch((err) => {
+        console.log(err);
+      });
+    });
   };
 
-  useEffect(() => {
-    console.log(selectedRowId);
-  }, [selectedRowId]);
-
-  // Example using Grid's API
-  const buttonListener = useCallback(() => {
-    gridRef.current.api.deselectAll();
+  const editRow = useCallback(() => {
+    const { api } = gridRef.current;
+    const selectedRow = api.getSelectedNodes();
+    api.setFocusedCell(selectedRow[0].rowIndex, "id");
+    api.startEditingCell({
+      rowIndex: selectedRow[0].rowIndex,
+      colKey: "id",
+    });
   }, []);
+
+  const updateRow = () => {
+    const selectedRow = gridRef.current.api.getSelectedNodes();
+    mainApi.updateCustomer(selectedRow[0].data).then(() => {
+      rowRerender(getCustomersData).catch((err) => {
+        console.log(err);
+      });
+    });
+  };
+
+  // const saveRow = () => {};
+
+  const addRow = () => {
+    rowRerender(getCustomersData);
+  };
+  // useEffect(() => {
+  //   console.log(selectedRowId);
+  // }, [selectedRowId]);
 
   return (
     <DashboardLayout>
@@ -176,13 +217,31 @@ function Tables() {
                   size="small"
                   variant="gradient"
                   color="success"
-                  onClick={buttonListener}
+                  onClick={addRow}
                 >
                   Добавить запись
                 </MDButton>
-                <MDButton sx={{ m: "0.5rem" }} size="small" variant="gradient" color="secondary">
-                  изменить
-                </MDButton>
+                {onEdit ? (
+                  <MDButton
+                    sx={{ m: "0.5rem" }}
+                    size="small"
+                    variant="gradient"
+                    color="warning"
+                    onClick={updateRow}
+                  >
+                    сохранить
+                  </MDButton>
+                ) : (
+                  <MDButton
+                    sx={{ m: "0.5rem" }}
+                    size="small"
+                    variant="gradient"
+                    color="secondary"
+                    onClick={editRow}
+                  >
+                    изменить
+                  </MDButton>
+                )}
                 <MDButton size="small" variant="gradient" color="error" onClick={deleteRow}>
                   удалить
                 </MDButton>
@@ -192,9 +251,13 @@ function Tables() {
                     rowData={customersList} // Row Data for Rows
                     columnDefs={customersColumns} // Column Defs for Columns
                     defaultColDef={defaultColDef} // Default Column Properties
+                    editType="fullRow"
+                    suppressClickEdit
                     animateRows // Optional - set to 'true' to have rows animate when sorted
                     rowSelection="single" // Options - allows click selection of rows
-                    onCellClicked={clickedRowIdListener} // Optional - registering for Grid Event
+                    onRowEditingStarted={onRowEditingStarted}
+                    onRowEditingStopped={onRowEditingStopped}
+                    // onCellClicked={clickedRowIdListener} // Optional - registering for Grid Event
                   />
                 </div>
               </MDBox>
@@ -220,7 +283,7 @@ function Tables() {
               <MDBox pt={3}>
                 <div className="ag-theme-alpine" style={{ height: 400, width: "100%" }}>
                   <AgGridReact
-                    ref={gridRef} // Ref for accessing Grid's API
+                    // ref={gridRef} // Ref for accessing Grid's API
                     rowData={ordersList} // Row Data for Rows
                     columnDefs={ordersColumns} // Column Defs for Columns
                     defaultColDef={defaultColDef} // Default Column Properties

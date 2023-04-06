@@ -35,11 +35,14 @@ class Api {
     }).then(resultHandler);
   }
 
-  updateCustomer(customerData, id) {
-    return fetch(`${this.apiPath}customers/${id}`, {
+  updateCustomer(customerData) {
+    console.log(customerData.id);
+    return fetch(`${this.apiPath}customers/${customerData.id}`, {
       method: "PATCH",
       headers: this.headers,
-      body: JSON.stringify(customerData),
+      body: JSON.stringify(
+        (customerData.name, customerData.surname, customerData.email, customerData.balance)
+      ),
     }).then(resultHandler);
   }
 
