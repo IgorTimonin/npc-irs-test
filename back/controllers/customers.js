@@ -48,10 +48,10 @@ module.exports.deleteCustomer = (req, res, next) => {
 
 module.exports.updateCustomer = (req, res, next) => {
   const { id } = req.params;
-  Customers.update({ ...req.body }, { where: { id } })
+  Customers.update({ ...req.body }, { where: { id }, returning: true })
     .then((customer) => {
       if (!customer) {
-        throw new NotFoundError(`Клиент с id ${req.params.Id} не найден`);
+        throw new NotFoundError(`Клиент c id ${req.params.Id} не найден`);
       }
       return customer;
     })

@@ -30,18 +30,22 @@ import Footer from "examples/Footer";
 import { AgGridReact } from "ag-grid-react";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { mainApi } from "utils/Api";
-// import { useLocation } from "react-router-dom";
 import Preloader from "Preloader/Preloader";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import MDButton from "components/MDButton";
-// eslint-disable-next-line import/extensions
 
 function Tables() {
   // колонки таблицы "покупатели"
   const [customersColumns] = useState([
-    { field: "id", maxWidth: 100 },
-    { field: "name", editable: true },
+    {
+      field: "id",
+      maxWidth: 100,
+    },
+    {
+      field: "name",
+      editable: true,
+    },
     { field: "surname", editable: true },
     { field: "email", editable: true },
     { field: "balance", editable: true },
@@ -55,12 +59,11 @@ function Tables() {
     { field: "total_cost" },
     { field: "customer_id" },
   ]);
-  // const { pathname } = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [customersList, setCustomersList] = useState([]);
   const [ordersList, setOrdersList] = useState([]);
-  // const [selectedRowId, setSelectedRowId] = useState(null);
   const [onEdit, setOnEdit] = useState(false);
+  const [onAdding, setOnAdding] = useState(false);
 
   // получение данных из БД:
   // о покупателях
@@ -95,27 +98,10 @@ function Tables() {
     getOrdersData();
   }, []);
 
-  // useEffect(() => {
-  //   if (pathname === "/tables") {
-  //     if (customersList.length === 0) {
-  //       setTimeout(() => {}, 2000);
-  //     } else setIsLoading(false);
-  //   }
-  // }, [customersList]);
-
-  // useEffect(() => {
-  //   if (pathname === "/tables") {
-  //     if (ordersList.length === 0) {
-  //       setTimeout(() => {}, 2000);
-  //     } else console.log(ordersList);
-  //     setIsLoading(false);
-  //   }
-  // }, [ordersList]);
-
   // AgGrid options
-  const gridRef = useRef(); // Optional - for accessing Grid's API
+  const gridRef = useRef(); // доступ к AGGrid API
 
-  // DefaultColDef sets props common to all Columns
+  // общие настройки для всех колонок
   const defaultColDef = useMemo(() => ({
     sortable: true,
     editable: false,
@@ -124,70 +110,82 @@ function Tables() {
     minWidth: 30,
   }));
 
-  // Example of consuming Grid Event
-  // const cellClickedListener = useCallback((event) => {
-  //   selectedRowID = event.data.id;
-  // }, []);
-
-  // сохраняем id строки в переменную
-  // const clickedRowIdListener = useCallback((e) => {
-  //   // selectedRowID = event.data.id;
-  //   // setSelectedRowId(e.data.id);
-  // }, []);
-
-  const onRowEditingStarted = useCallback(() => {
-    setOnEdit(true);
-    // console.log("начато редактирование");
-  }, []);
-
-  const onRowEditingStopped = useCallback(() => {
-    setOnEdit(false);
-    // console.log("редактирование закончено");
-  }, []);
-
   // обновление данных таблицы
-  async function rowRerender(callback) {
+  async function rowsRerender(callback) {
     await callback();
     gridRef.current.api.refreshCells();
   }
+  // действия при начале редактирования строки
+  const onRowEditingStarted = () => {
+    setOnEdit(true);
+  };
+  // действия при окончании редактирования строки
+  const onRowEditingStopped = () => {
+    setOnEdit(false);
+    setOnAdding(false);
+    rowsRerender(getCustomersData);
+  };
+
+  // добавление новой строки и фокусировка для редактирования
+  async function addNewRow() {
+    setOnAdding(true);
+    const { api } = gridRef.current;
+    await api.applyTransaction({ add: [{}], addIndex: 0 });
+    api.setFocusedCell(0, "id");
+    api.startEditingCell({
+      rowIndex: 0,
+      colKey: "id",
+    });
+  }
+  // сохранение новой строки в БД и отрисовка обновлённых данных
+  const saveNewRow = () => {
+    setOnAdding(false);
+    const { api } = gridRef.current;
+    api.stopEditing();
+    const selectedRow = api.getSelectedNodes();
+    mainApi.addCustomer(selectedRow[0].data).then(() => {
+      rowsRerender(getCustomersData)
+        .then(() => setOnEdit(false))
+        .catch((err) => {
+          console.log(err);
+        });
+    });
+  };
+  // редактирование строки
+  const editRow = useCallback(() => {
+    const { api } = gridRef.current;
+    const selectedRow = api.getSelectedNodes();
+    if (selectedRow.length > 0) {
+      api.setFocusedCell(selectedRow[0].rowIndex, "id");
+      api.startEditingCell({
+        rowIndex: selectedRow[0].rowIndex,
+        colKey: "id",
+      });
+    } else console.log("He выбрана строка для редактирования");
+  }, []);
+  // обновление данных строки
+  const updateRow = () => {
+    const { api } = gridRef.current;
+    api.stopEditing();
+    const selectedRow = api.getSelectedNodes();
+    mainApi.updateCustomer(selectedRow[0].data).then(() => {
+      rowsRerender(getCustomersData)
+        .then(() => setOnEdit(false))
+        .catch((err) => {
+          console.log(err);
+        });
+    });
+  };
 
   // удаление покупателя
   const deleteRow = () => {
     const selectedRow = gridRef.current.api.getSelectedNodes();
     mainApi.deleteCustomer(selectedRow[0].data.id).then(() => {
-      rowRerender(getCustomersData).catch((err) => {
+      rowsRerender(getCustomersData).catch((err) => {
         console.log(err);
       });
     });
   };
-
-  const editRow = useCallback(() => {
-    const { api } = gridRef.current;
-    const selectedRow = api.getSelectedNodes();
-    api.setFocusedCell(selectedRow[0].rowIndex, "id");
-    api.startEditingCell({
-      rowIndex: selectedRow[0].rowIndex,
-      colKey: "id",
-    });
-  }, []);
-
-  const updateRow = () => {
-    const selectedRow = gridRef.current.api.getSelectedNodes();
-    mainApi.updateCustomer(selectedRow[0].data).then(() => {
-      rowRerender(getCustomersData).catch((err) => {
-        console.log(err);
-      });
-    });
-  };
-
-  // const saveRow = () => {};
-
-  const addRow = () => {
-    rowRerender(getCustomersData);
-  };
-  // useEffect(() => {
-  //   console.log(selectedRowId);
-  // }, [selectedRowId]);
 
   return (
     <DashboardLayout>
@@ -217,17 +215,24 @@ function Tables() {
                   size="small"
                   variant="gradient"
                   color="success"
-                  onClick={addRow}
+                  // eslint-disable-next-line react/jsx-no-bind
+                  onClick={addNewRow}
+                  disabled={onAdding}
                 >
                   Добавить запись
                 </MDButton>
+                {/* )} */}
                 {onEdit ? (
                   <MDButton
                     sx={{ m: "0.5rem" }}
                     size="small"
                     variant="gradient"
                     color="warning"
-                    onClick={updateRow}
+                    onClick={() => {
+                      if (onAdding) {
+                        saveNewRow();
+                      } else updateRow();
+                    }}
                   >
                     сохранить
                   </MDButton>
@@ -257,7 +262,6 @@ function Tables() {
                     rowSelection="single" // Options - allows click selection of rows
                     onRowEditingStarted={onRowEditingStarted}
                     onRowEditingStopped={onRowEditingStopped}
-                    // onCellClicked={clickedRowIdListener} // Optional - registering for Grid Event
                   />
                 </div>
               </MDBox>

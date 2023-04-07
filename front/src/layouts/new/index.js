@@ -33,7 +33,7 @@ function New() {
       <MDBox pt={6} pb={3}>
         <Grid container spacing={6}>
           <Grid item xs={12}>
-            <Card>
+            <Card sx={{ height: "50vh" }}>
               <MDBox
                 mx={2}
                 mt={-3}
@@ -48,8 +48,18 @@ function New() {
                   New Page
                 </MDTypography>
               </MDBox>
-              <MDBox pt={3}>
-                <div>Скоро здесь будет новая страница</div>
+              <MDBox
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  height: "100%",
+                  alignItems: "center",
+                }}
+              >
+                <MDTypography variant="h2" color="black">
+                  Скоро здесь будет новая страница
+                </MDTypography>
+                {/* <div style={{ height: 400, width: "100%" }}>Скоро здесь будет новая страница</div> */}
               </MDBox>
             </Card>
           </Grid>

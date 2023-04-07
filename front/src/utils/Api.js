@@ -28,7 +28,7 @@ class Api {
   }
 
   addCustomer(customerData) {
-    return fetch(this.apiPath, {
+    return fetch(`${this.apiPath}customers/`, {
       method: "POST",
       headers: this.headers,
       body: JSON.stringify(customerData),
@@ -36,13 +36,23 @@ class Api {
   }
 
   updateCustomer(customerData) {
-    console.log(customerData.id);
+    console.log(
+      JSON.stringify({
+        name: customerData.name,
+        surname: customerData.surname,
+        email: customerData.email,
+        balance: customerData.balance,
+      })
+    );
     return fetch(`${this.apiPath}customers/${customerData.id}`, {
       method: "PATCH",
       headers: this.headers,
-      body: JSON.stringify(
-        (customerData.name, customerData.surname, customerData.email, customerData.balance)
-      ),
+      body: JSON.stringify({
+        name: customerData.name,
+        surname: customerData.surname,
+        email: customerData.email,
+        balance: customerData.balance,
+      }),
     }).then(resultHandler);
   }
 
