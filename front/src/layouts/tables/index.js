@@ -114,6 +114,7 @@ function Tables() {
   async function rowsRerender(callback) {
     await callback();
     gridRef.current.api.refreshCells();
+    setIsLoading(false);
   }
   // действия при начале редактирования строки
   const onRowEditingStarted = () => {
@@ -143,6 +144,7 @@ function Tables() {
     const { api } = gridRef.current;
     api.stopEditing();
     const selectedRow = api.getSelectedNodes();
+    setIsLoading(true);
     mainApi.addCustomer(selectedRow[0].data).then(() => {
       rowsRerender(getCustomersData)
         .then(() => setOnEdit(false))
@@ -168,6 +170,7 @@ function Tables() {
     const { api } = gridRef.current;
     api.stopEditing();
     const selectedRow = api.getSelectedNodes();
+    setIsLoading(true);
     mainApi.updateCustomer(selectedRow[0].data).then(() => {
       rowsRerender(getCustomersData)
         .then(() => setOnEdit(false))
@@ -180,6 +183,7 @@ function Tables() {
   // удаление покупателя
   const deleteRow = () => {
     const selectedRow = gridRef.current.api.getSelectedNodes();
+    setIsLoading(true);
     mainApi.deleteCustomer(selectedRow[0].data.id).then(() => {
       rowsRerender(getCustomersData).catch((err) => {
         console.log(err);

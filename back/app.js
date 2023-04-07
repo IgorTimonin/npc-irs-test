@@ -29,14 +29,12 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-
 app.use('/customers', customersRouter);
 app.use('/orders', ordersRouter);
 app.use('/*', (req, res, next) => {
   next(new NotFoundError(pageNotFoundErr));
 });
 app.use(errorLogger); // логгер ошибок
-
 app.use(errors()); // обработчик ошибок celebrate
 app.use(errorHandler); // централизованный обработчик ошибок
 app.listen(port);

@@ -59,7 +59,6 @@ function New() {
                 <MDTypography variant="h2" color="black">
                   Скоро здесь будет новая страница
                 </MDTypography>
-                {/* <div style={{ height: 400, width: "100%" }}>Скоро здесь будет новая страница</div> */}
               </MDBox>
             </Card>
           </Grid>

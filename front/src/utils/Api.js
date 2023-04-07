@@ -36,14 +36,6 @@ class Api {
   }
 
   updateCustomer(customerData) {
-    console.log(
-      JSON.stringify({
-        name: customerData.name,
-        surname: customerData.surname,
-        email: customerData.email,
-        balance: customerData.balance,
-      })
-    );
     return fetch(`${this.apiPath}customers/${customerData.id}`, {
       method: "PATCH",
       headers: this.headers,

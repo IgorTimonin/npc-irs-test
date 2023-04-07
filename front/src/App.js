@@ -8,7 +8,7 @@
 
 Coded by www.creative-tim.com
 
- =========================================================
+=========================================================
 
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
@@ -24,21 +24,21 @@ import CssBaseline from "@mui/material/CssBaseline";
 import Icon from "@mui/material/Icon";
 
 // Material Dashboard 2 React components
-import MDBox from "components/MDBox";
+import MDBox from "./components/MDBox";
 
 // Material Dashboard 2 React example components
-import Sidenav from "examples/Sidenav";
-import Configurator from "examples/Configurator";
+import Sidenav from "./examples/Sidenav";
+import Configurator from "./examples/Configurator";
 
 // Material Dashboard 2 React themes
-import theme from "assets/theme";
+import theme from "./assets/theme";
 
 // Material Dashboard 2 React Dark Mode themes
-import themeDark from "assets/theme-dark";
+import themeDark from "./assets/theme-dark";
 
 // Images
-import brandWhite from "assets/images/logo-ct.png";
-import brandDark from "assets/images/logo-ct-dark.png";
+import brandWhite from "./assets/images/logo-ct.png";
+import brandDark from "./assets/images/logo-ct-dark.png";
 
 // import { mainApi } from "./utils/Api";
 
