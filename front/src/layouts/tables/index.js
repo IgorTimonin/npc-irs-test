@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable import/no-unresolved */
 /**
 =========================================================
@@ -20,6 +21,7 @@ import Card from "@mui/material/Card";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
+import MDButton from "components/MDButton";
 import MDTypography from "components/MDTypography";
 
 // Material Dashboard 2 React example components
@@ -33,7 +35,7 @@ import { mainApi } from "utils/Api";
 import Preloader from "Preloader/Preloader";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
-import MDButton from "components/MDButton";
+import { Box, TextField } from "@mui/material";
 
 function Tables() {
   // колонки таблицы "покупатели"
@@ -59,27 +61,15 @@ function Tables() {
     { field: "total_cost" },
     { field: "customer_id" },
   ]);
+
   const [isLoading, setIsLoading] = useState(false);
-  const [customersList, setCustomersList] = useState([]);
   const [ordersList, setOrdersList] = useState([]);
   const [onEdit, setOnEdit] = useState(false);
   const [onAdding, setOnAdding] = useState(false);
+  const [values, setValues] = useState({ name: "", surname: "", email: "", balance: "" });
 
-  // получение данных из БД:
-  // о покупателях
-  async function getCustomersData() {
-    setIsLoading(true);
-    await mainApi
-      .getCustomersData()
-      .then((data) => setCustomersList(data))
-      .then(() => {
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }
-  // о заказах
+  // получение данных из БД для статичной таблицы:
+  // заказы
   function getOrdersData() {
     setIsLoading(true);
     mainApi
@@ -94,12 +84,40 @@ function Tables() {
   }
 
   useEffect(() => {
-    getCustomersData();
     getOrdersData();
   }, []);
 
   // AgGrid options
   const gridRef = useRef(); // доступ к AGGrid API
+  const cacheBlockSize = 10; // кол-во получаемых строк с сервера
+
+  // получение данных для таблицы "пользователи"
+  const datasource = {
+    getRows(params) {
+      const { startRow } = params;
+      const page = startRow / 10;
+      let url = "http://localhost:4001/customers?";
+      // загрузка строк Infinite Row
+      url += `page=${page}`;
+      fetch(url)
+        .then((httpResponse) => httpResponse.json())
+        .then((response) => {
+          let lastRow = null;
+          if (response.length < cacheBlockSize) {
+            lastRow = startRow + response.length;
+          }
+          params.successCallback(response, lastRow);
+        })
+        .catch((error) => {
+          console.error(error);
+          params.failCallback();
+        });
+    },
+  };
+
+  const onGridReady = (params) => {
+    params.api.setDatasource(datasource);
+  };
 
   // общие настройки для всех колонок
   const defaultColDef = useMemo(() => ({
@@ -111,9 +129,8 @@ function Tables() {
   }));
 
   // обновление данных таблицы
-  async function rowsRerender(callback) {
-    await callback();
-    gridRef.current.api.refreshCells();
+  async function rowsRerender() {
+    gridRef.current.api.setDatasource(datasource);
     setIsLoading(false);
   }
   // действия при начале редактирования строки
@@ -124,35 +141,33 @@ function Tables() {
   const onRowEditingStopped = () => {
     setOnEdit(false);
     setOnAdding(false);
-    rowsRerender(getCustomersData);
+    rowsRerender();
   };
 
-  // добавление новой строки и фокусировка для редактирования
-  async function addNewRow() {
-    setOnAdding(true);
-    const { api } = gridRef.current;
-    await api.applyTransaction({ add: [{}], addIndex: 0 });
-    api.setFocusedCell(0, "id");
-    api.startEditingCell({
-      rowIndex: 0,
-      colKey: "id",
-    });
-  }
   // сохранение новой строки в БД и отрисовка обновлённых данных
   const saveNewRow = () => {
     setOnAdding(false);
-    const { api } = gridRef.current;
-    api.stopEditing();
-    const selectedRow = api.getSelectedNodes();
-    setIsLoading(true);
-    mainApi.addCustomer(selectedRow[0].data).then(() => {
-      rowsRerender(getCustomersData)
+    mainApi.addCustomer(values).then(() => {
+      setIsLoading(true);
+      rowsRerender()
         .then(() => setOnEdit(false))
         .catch((err) => {
+          setIsLoading(false);
           console.log(err);
         });
     });
   };
+
+  const handleChange = (e) => {
+    const { target } = e;
+    const { name, value } = target;
+    setValues({ ...values, [name]: value });
+  };
+
+  const handleValueChanger = (e) => {
+    handleChange(e);
+  };
+
   // редактирование строки
   const editRow = useCallback(() => {
     const { api } = gridRef.current;
@@ -165,6 +180,7 @@ function Tables() {
       });
     } else console.log("He выбрана строка для редактирования");
   }, []);
+
   // обновление данных строки
   const updateRow = () => {
     const { api } = gridRef.current;
@@ -172,7 +188,7 @@ function Tables() {
     const selectedRow = api.getSelectedNodes();
     setIsLoading(true);
     mainApi.updateCustomer(selectedRow[0].data).then(() => {
-      rowsRerender(getCustomersData)
+      rowsRerender()
         .then(() => setOnEdit(false))
         .catch((err) => {
           console.log(err);
@@ -185,10 +201,18 @@ function Tables() {
     const selectedRow = gridRef.current.api.getSelectedNodes();
     setIsLoading(true);
     mainApi.deleteCustomer(selectedRow[0].data.id).then(() => {
-      rowsRerender(getCustomersData).catch((err) => {
+      rowsRerender().catch((err) => {
         console.log(err);
       });
     });
+  };
+
+  const cancelEdit = () => {
+    if (onAdding) setOnAdding(false);
+    if (onEdit) {
+      setOnEdit(false);
+      gridRef.current.api.stopEditing();
+    }
   };
 
   return (
@@ -214,19 +238,30 @@ function Tables() {
                 </MDTypography>
               </MDBox>
               <MDBox pt={3}>
-                <MDButton
-                  sx={{ ml: "0.5rem" }}
-                  size="small"
-                  variant="gradient"
-                  color="success"
-                  // eslint-disable-next-line react/jsx-no-bind
-                  onClick={addNewRow}
-                  disabled={onAdding}
-                >
-                  Добавить запись
-                </MDButton>
-                {/* )} */}
-                {onEdit ? (
+                {onAdding || onEdit ? (
+                  <MDButton
+                    sx={{ ml: "0.5rem" }}
+                    size="small"
+                    variant="gradient"
+                    color="success"
+                    onClick={cancelEdit}
+                  >
+                    Отменить
+                  </MDButton>
+                ) : (
+                  <MDButton
+                    sx={{ ml: "0.5rem" }}
+                    size="small"
+                    variant="gradient"
+                    color="success"
+                    onClick={() => {
+                      setOnAdding(true);
+                    }}
+                  >
+                    Добавить запись
+                  </MDButton>
+                )}
+                {onEdit || onAdding ? (
                   <MDButton
                     sx={{ m: "0.5rem" }}
                     size="small"
@@ -251,13 +286,69 @@ function Tables() {
                     изменить
                   </MDButton>
                 )}
-                <MDButton size="small" variant="gradient" color="error" onClick={deleteRow}>
+                <MDButton
+                  size="small"
+                  variant="gradient"
+                  color="error"
+                  onClick={deleteRow}
+                  disabled={onEdit || onAdding}
+                >
                   удалить
                 </MDButton>
+                {onAdding ? (
+                  <Box
+                    component="form"
+                    sx={{
+                      "& .MuiTextField-root": { m: 1, width: "20ch" },
+                    }}
+                    noValidate
+                    autoComplete="off"
+                    autoFocus="true"
+                  >
+                    <div>
+                      <TextField
+                        required
+                        type="text"
+                        id="name"
+                        name="name"
+                        label="Имя"
+                        placeholder="от 2 до 30 символов"
+                        onChange={handleValueChanger}
+                        inputProps={{ minlength: 2, maxLength: 30 }}
+                      />
+                      <TextField
+                        required
+                        id="surname"
+                        name="surname"
+                        label="Фамилия"
+                        placeholder="от 2 до 30 символов"
+                        onChange={handleValueChanger}
+                        inputProps={{ minlength: 2, maxLength: 30 }}
+                      />
+                      <TextField
+                        required
+                        type="email"
+                        id="email"
+                        name="email"
+                        label="email"
+                        placeholder="email@mail.com"
+                        onChange={handleValueChanger}
+                      />
+                      <TextField
+                        id="balance"
+                        name="balance"
+                        inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                        label="Баланс"
+                        onChange={handleValueChanger}
+                      />
+                    </div>
+                  </Box>
+                ) : (
+                  ""
+                )}
                 <div className="ag-theme-alpine" style={{ height: 400, width: "100%" }}>
                   <AgGridReact
                     ref={gridRef} // Ref for accessing Grid's API
-                    rowData={customersList} // Row Data for Rows
                     columnDefs={customersColumns} // Column Defs for Columns
                     defaultColDef={defaultColDef} // Default Column Properties
                     editType="fullRow"
@@ -266,6 +357,13 @@ function Tables() {
                     rowSelection="single" // Options - allows click selection of rows
                     onRowEditingStarted={onRowEditingStarted}
                     onRowEditingStopped={onRowEditingStopped}
+                    rowModelType="infinite"
+                    cacheBlockSize={cacheBlockSize}
+                    cacheOverflowSize={2}
+                    maxConcurrentDatasourceRequests={1}
+                    infiniteInitialRowCount={10}
+                    maxBlocksInCache={10}
+                    onGridReady={onGridReady}
                   />
                 </div>
               </MDBox>
@@ -291,13 +389,11 @@ function Tables() {
               <MDBox pt={3}>
                 <div className="ag-theme-alpine" style={{ height: 400, width: "100%" }}>
                   <AgGridReact
-                    // ref={gridRef} // Ref for accessing Grid's API
                     rowData={ordersList} // Row Data for Rows
                     columnDefs={ordersColumns} // Column Defs for Columns
                     defaultColDef={defaultColDef} // Default Column Properties
                     animateRows // Optional - set to 'true' to have rows animate when sorted
                     rowSelection="multiple" // Options - allows click selection of rows
-                    // onCellClicked={cellClickedListener} // Optional - registering for Grid Event
                   />
                 </div>
               </MDBox>

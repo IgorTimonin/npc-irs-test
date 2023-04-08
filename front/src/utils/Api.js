@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 export const resultHandler = (res) => {
   if (res.ok) {
     return res.json();
@@ -20,8 +21,8 @@ class Api {
     }).then(resultHandler);
   }
 
-  getCustomersData() {
-    return fetch(`${this.apiPath}customers/`, {
+  getCustomersData(page) {
+    return fetch(`${this.apiPath}customers${page ? `?page=${page}` : ""}`, {
       method: "GET",
       headers: this.headers,
     }).then(resultHandler);

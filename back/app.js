@@ -1,6 +1,7 @@
+/* eslint-disable import/no-extraneous-dependencies */
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors')
+const cors = require('cors');
 const { errors } = require('celebrate');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 

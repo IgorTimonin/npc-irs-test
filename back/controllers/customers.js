@@ -5,10 +5,25 @@ const db = require('../db');
 const { conflictEmailErr } = require('../errors/errorsConsts');
 
 const Customers = db.customers;
+// параметры пагинации/частичной загрузки данных
+const paginate = (page) => {
+  const limit = 10;
+  const offset = page ? page * limit : 0;
+  return { limit, offset };
+};
 
 module.exports.getAllCustomers = (req, res, next) => {
-  Customers.findAll()
+  const { page } = req.query;
+  console.log(req.query);
+  Customers.findAll({
+    ...paginate(page),
+  })
     .then((data) => res.send(data))
+    .catch(() => {
+      if (!req.body.page) {
+        next(new BadRequestError('не передан номер страницы c данными'));
+      }
+    })
     .catch(next);
 };
 
