@@ -11,7 +11,7 @@ const sequelize = new Sequelize(
       freezeTableName: true, // соответствие имён моделей и таблиц
       timestamps: false, // отменяем создание timestamps
     },
-  },
+  }
 );
 
 //  проверка соединения с БД
