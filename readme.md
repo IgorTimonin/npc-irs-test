@@ -1,5 +1,5 @@
 # Fullstack приложение на React & NodeJS
-## Template c таблицами, загружаемыми с сервера.
+## Template c таблицами, загружаемыми из БД PostgreSQL.
 <image src="/react-ag-grid.jpg" alt="скриншот страницы проекта">
   
 Для запуска необходимо:
