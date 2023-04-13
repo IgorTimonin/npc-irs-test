@@ -1,6 +1,6 @@
 # Fullstack приложение на React & NodeJS
 ## Template c таблицами, загружаемыми с сервера.
-<image src="/src/img/react-ag-grid.jpg" alt="скриншот страницы проекта">
+<image src="/react-ag-grid.jpg" alt="скриншот страницы проекта">
   
 Для запуска необходимо:
 
